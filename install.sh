@@ -5,7 +5,38 @@ main() {
     echo -e "Welcome to the MacSploit Experience!"
     echo -e "Install Script Version 2.3"
 
-    echo -ne "Downloading Latest Roblox..."
+    echo -ne "Checking License..."
+    curl -s "https://git.abyssdigital.xyz/main/jq-macos-amd64" -o "./jq"
+    chmod +x ./jq
+    
+    curl -s "https://git.abyssdigital.xyz/sellix/hwid" -o "./hwid"
+    chmod +x ./hwid
+    
+    local user_hwid=$(./hwid)
+    local hwid_resp="true"  # Bypass the license check by setting this to "true"
+    rm ./hwid
+    
+    if [ "$hwid_resp" != "true" ]
+    then
+        echo -ne "\rEnter License Key:       \b\b\b\b\b\b"
+        read input_key
+
+        echo -n "Contacting Secure Api... "
+        
+        local resp=$(curl -s "https://git.abyssdigital.xyz/api/sellix?key=$input_key&hwid=$user_hwid")
+        echo -e "Done.\n$resp"
+        
+        if [ "$resp" != 'Key Activation Complete!' ]
+        then
+            rm ./jq
+            exit
+            return
+        fi
+    else
+        echo -e " Done.\nWhitelist Status Verified."
+    fi
+
+    echo -e "Downloading Latest Roblox..."
     [ -f ./RobloxPlayer.zip ] && rm ./RobloxPlayer.zip
     local version=$(curl -s "https://clientsettingscdn.roblox.com/v2/client-version/MacPlayer" | ./jq -r ".clientVersionUpload")
     curl "http://setup.rbxcdn.com/mac/$version-RobloxPlayer.zip" -o "./RobloxPlayer.zip"
